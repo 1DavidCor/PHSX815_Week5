@@ -69,6 +69,6 @@ plt.legend()
 ### Much faster to sort in a loop AND THEN plot
 
 print("Sample Size: N = " + str(N) + "\n")
-print("NUmber of accepts " + str(accept) + "\n")
+print("Number of accepts " + str(accept) + "\n")
 print("Number of rejects: " + str(N - accept) + "\n")
 print("Number of accepts / N : " + str(accept / N) + "\n")
