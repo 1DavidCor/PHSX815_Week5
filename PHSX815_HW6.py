@@ -16,8 +16,8 @@ import matplotlib.pyplot as plt
 # - Compare the difference between the two numerical integrals, and their difference with the correct/analytic answer, as a function of the number sub-intervals. Is the difference between the two estimates a good indicator of the actual error?
 
 ### NUMERICAL INTEGRATION ###
-x = np.linspace(0, 25, 1000)
-f = np.sqrt(x) #use the function f(x) = sqrt(x) on the closed interval [0, 25]
+#x = np.linspace(0, 25, 1000)
+#f = np.sqrt(x) #use the function f(x) = sqrt(x) on the closed interval [0, 25]
 #Indefinite Integral = (2/3)x**(3/2) + C
 #Definite integral on [0, 25] = 250/3 = 83.3333
 
@@ -25,6 +25,11 @@ f = np.sqrt(x) #use the function f(x) = sqrt(x) on the closed interval [0, 25]
 if '-num_intervals' in sys.argv:
     p = sys.argv.index('-num_intervals')
     num_intervals = int(sys.argv[p+1])
+    
+# Number of evaluation points (for Gaussian quadrature) from user input
+if '-num_evals' in sys.argv:
+    p = sys.argv.index('-num_evals')
+    num_evals = int(sys.argv[p+1])
 
 ### Method 1: Trapezoid Rule
 
@@ -51,14 +56,37 @@ for j in range(1, num_intervals + 1):
 
 #print(integral_arr)
 
+
+### Method 2: Gaussian Quadrature
+
+def integral_gauss_quad(num_evals):
+    #before using gaussian quadrature rules, we must change the interval from [0, 25] to [-1, 1]
+    #int sqrt(x) on the closed interval [0, 25] becomes int 25/2 * sqrt(25x/2 + 25/2) dx; THIS = f(x_i) in approx.
+    #introduce Chebyshev weight funciton to use Chebyshev-Gauss quadrature approximation: w(x) = (1-x^2)^(-1/2)
+    #This integral is then approximated by sum from i = 1 to n of 2)(w_i * f(x_i)) where x_i = cos((2i - 1) / 2n * pi) and w_i = pi/n this is what this function will compute
+    
+    integral = 0
+    
+    for i in range(1, num_evals):
+        w_i = np.pi / num_evals
+        x_i = np.cos((2*i - 1) / (2 * num_evals) * np.pi)
+        f_x_i = 25/2 * np.sqrt((25*x_i / 2) + 25/2)
+        integral = integral + w_i * f_x_i
+        
+    return integral
+
+integral_arr_gauss = []   
+for j in range(1, num_intervals + 1): 
+    integral = integral_gauss_quad(j)
+    integral_arr_gauss = np.append(integral_arr_gauss, integral)
+
 #plot integral approx as a function of num_intervals
 plt.figure()
-plt.title("Numerical Integration: Trapezoid Rule")
+plt.title("Numerical Integration: Trapezoid Rule + Chebyshev-Gauss Quadrature")
 plt.xlabel("Number of sub-intervals")
 plt.ylabel("Calculated Integral Value")
 plt.axhline(250/3, color = "g", label = "analytical") #analytical answer
-plt.plot(np.linspace(0, num_intervals, integral_arr.size), integral_arr, color = "r", label = "Trapezoid approx") #trapezoid 
+plt.plot(np.linspace(0, num_intervals, integral_arr.size), integral_arr, color = "r", label = "Trapezoid approx") #trapezoid
+plt.plot(np.linspace(0, num_intervals, integral_arr.size), integral_arr_gauss, color = "b", label = "Chebyshev-Gauss")
 plt.legend()
 plt.show()
-
-### Method 2: Gaussian Quadrature
